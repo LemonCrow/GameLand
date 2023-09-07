@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>이상한 지렁이 게임</title>
+	<style type="text/css">
+		html, body{
+			background-color: black;
+		}
+
+		canvas {
+		    position: absolute;
+		    top:0;
+		    bottom: 0;
+		    left: 0;
+		    right: 0;
+		    margin:auto;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="game_canvas" width="400" height="400"></canvas>
+	<div>
+		<button id="sound" value="0" onclick="turn(this)" style="border-radius:10px"><img src="../images/mute.png" width="50px" height="50px" id="img"></button>
+		<button onclick="location.href='../index.html'" style="border-radius:10px"><img src="../images/home.png" width="50px" height="50px"></button>
+	</div>
+	<script type="text/javascript">
+		let song = new Audio('../sounds/bgm.mp3');
+		let sound = document.getElementById("sound");
+		let img = document.getElementById("img");
+
+		function turn(sBtn) {
+			if (sBtn.value == 0){
+				song.play();
+				sBtn.value = 1;
+				img.src = "../images/volume.png";
+			}
+			else if (sBtn.value == 1) {
+				song.pause();
+				sBtn.value = 0;
+				img.src = "../images/mute.png";
+			}
+		}
+
+		song.addEventListener('ended', function() { 
+        	this.currentTime = 0;
+        	this.play();
+    	}, false);
+
+	</script>
+	<script type="text/javascript">
+		const canvas = document.getElementById("game_canvas");
+		const ctx = canvas.getContext("2d");
+
+		window.onload = () => {
+			document.addEventListener("keydown", keyPush);
+
+			setInterval(game, 1000 / 15)
+		}
+
+		let positionX = 0, positionY = 0;
+		const gridSize = 20, titleCount = 20;
+		let velocityX = 0, velocityY = 0;
+		let ratX = 15, ratY = 15;
+		const trail = [];
+		let tailLength = 5;
+
+		function keyPush(evt){
+			switch(evt.keyCode) {
+				case 37:
+					velocityX += -1;
+					velocityY += 0;
+					break;
+
+				case 38:
+					velocityX += 0;
+					velocityY += -1;
+					break;
+
+				case 39:
+					velocityX += 1;
+					velocityY += 0;
+					break;
+
+				case 40:
+					velocityX += 0;
+					velocityY += 1;
+					break;
+			}
+		}
+
+		function game() {
+
+			positionX += velocityX;
+			positionY += velocityY;
+
+			if (positionX < 0){
+				positionX = titleCount - 1;
+			}
+			if (positionX > titleCount - 1) {
+				positionX = 0;
+			}
+			if (positionY < 0) {
+				positionY = titleCount - 1;
+			}
+			if (positionY > titleCount - 1) {
+				positionY = 0;
+			}
+
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			ctx.fillStyle = "lime"; //뱀 코드 0610 여기서부터 이어서 해 낼 먹이 만들꺼임
+			// ctx.fillRect(positionX * gridSize, positionY * gridSize, gridSize - 2, gridSize - 2); 이거 이전 몸체 코드라 지움 나중에 버그 테스트할때 사용
+			for (let i = 0; i < trail.length; i++) { //신 몸체 코드 길이 증가형
+				ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize - 2, gridSize - 2);
+
+				if(trail[i].x === positionX && trail[i].y === positionY) { //충돌 코드
+					tail = 5;
+				}
+			}
+
+			trail.push({
+				x: positionX,
+				y: positionY
+			});
+
+			while(trail.length > tailLength) {
+				trail.shift();
+			}
+
+			//먹이 스폰
+			if (ratX === positionX && ratY === positionY) {
+				ratX = Math.floor(Math.random() * titleCount);
+				ratY = Math.floor(Math.random() * titleCount);
+			}
+
+			ctx.fillStyle = "gray"; //먹이 코드
+			ctx.fillRect(ratX * gridSize, ratY * gridSize, gridSize - 2, gridSize - 2)
+
+		}
+	</script>
+</body>
+</html>

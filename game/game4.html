@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+	<style type="text/css">
+
+		body{
+			background-color: black;
+			color: white;
+		}
+
+		#puzzle{
+			background-color: white;
+			border: 1px solid #333333;
+			width: 400px;
+			height: 400px;
+			color: black;
+		}
+
+		#puzzle .cell{
+			border: 1px solid #cccccc;
+			width: 100px;
+			height: 100px;
+			background: white;
+			box-sizing: border-box;
+			text-align: center;
+			line-height: 100px;
+			float: left;
+			color: black;
+		}
+
+
+	</style>
+	<script type="text/javascript">
+		let body;
+		let randNumArr = new Array();
+		let size = 16;
+		let cells;
+		let count = 0;
+
+		setRandNumArr = function() {
+			for (let i = 0; i < size; ) {
+				let idx = Math.floor(Math.random() * size);
+				if (randNumArr[idx] == undefined) {
+					randNumArr[idx] = String.fromCharCode(i % 8 + 65);
+					i++;
+				}
+			}
+		}
+
+		function init() {
+			body = document.getElementsByTagName("body")[0];
+
+			let heading = document.createElement("h1");
+			heading.innerHTML = "같은 그림 맞추기~";
+			body.appendChild(heading);
+			let puzzle = document.createElement("div");
+			puzzle.id = "puzzle";
+			body.appendChild(puzzle);
+
+			setRandNumArr();
+
+			for (let i = 0; i < size; i++) {
+				let cell = document.createElement("div");
+				cell.className = "cell";
+				cell.id = "cell" + randNumArr[i];
+				cell.innerHTML = randNumArr[i];
+				cell.code = randNumArr[i];
+				puzzle.appendChild(cell);
+			}
+		}
+
+		function compare() {
+			alert("게임시작!");
+
+			let tmp = null;
+
+			for (let i = 0; i < cells.length; i++) {
+				cells[i].onclick = function() {
+					this.innerHTML = this.code;
+					this.style.background = "yellow";
+					if (tmp == null) {
+						tmp = this;
+						tmp.st;
+					}
+					else {
+						if (tmp == this) {
+							alert("같은 셀을 선택했습니다!");
+							return;
+						}
+
+						if (tmp.code == this.code) {
+							alert("정답!");
+						}
+						else {
+							alert("땡!");
+							tmp.innerHTML = "";
+							this.innerHTML = "";
+							tmp.style.background = "";
+							this.style.background = "";
+						}
+
+						tmp = null;
+					}
+				}
+			}
+		}
+
+	function start() {
+		let message = document.createElement("p");
+		message.innerHTML = "5초 후 게임이 시작됩니다.";
+		body.appendChild(message);
+		let sec = 5;
+
+		var fn = setInterval(function(){
+			sec--;
+			message.innerHTML = sec + "초 후에 게임이 시작됩니다.";
+			if (sec == 0) {
+				message.innerHTML = "같은 알파벳 짝을 찾으세요!";
+				clearInterval(fn);
+			}
+		}, 1000);
+
+		setTimeout(function() {
+			cells = document.getElementById("puzzle").getElementsByTagName("div");
+			for (let i = 0; i < size; i++) {
+				cells[i].innerHTML = "";
+			}
+
+			compare();
+
+		}, 5000);
+	}
+
+	function main() {
+		init();
+		start();
+	}
+
+	window.onload = main;
+	</script>
+</head>
+<body>
+	<div>
+		<button id="sound" value="0" onclick="turn(this)" style="border-radius:10px"><img src="../images/mute.png" width="50px" height="50px" id="img"></button>
+		<button onclick="location.href='../index.html'" style="border-radius:10px"><img src="../images/home.png" width="50px" height="50px"></button>
+	</div>
+	<script type="text/javascript">
+		let song = new Audio('../sounds/bgm.mp3');
+		let sound = document.getElementById("sound");
+		let img = document.getElementById("img");
+
+		function turn(sBtn) {
+			if (sBtn.value == 0){
+				song.play();
+				sBtn.value = 1;
+				img.src = "../images/volume.png";
+			}
+			else if (sBtn.value == 1) {
+				song.pause();
+				sBtn.value = 0;
+				img.src = "../images/mute.png";
+			}
+		}
+
+		song.addEventListener('ended', function() { 
+        	this.currentTime = 0;
+        	this.play();
+    	}, false);
+
+	</script>
+</body>
+</html>

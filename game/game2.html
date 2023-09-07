@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+	<style type="text/css">
+
+		canvas {
+		    position: absolute;
+		    top:0;
+		    bottom: 0;
+		    left: 0;
+		    right: 0;
+		    margin:auto;
+		}
+
+		body, html{
+			background-color: black;
+			overflow:hidden
+		}
+		.game_msg {
+		    position: absolute;
+		    width: 720px;
+		    height: 480px;
+		    background-color: rgba(0, 0, 0, 0.7);
+		    text-align: center;
+		    line-height: 480px;
+		    font-size: 30px;
+		    color: #ffffff;
+		    font-weight: bold;
+		    display: none;
+		}
+		.game_msg.show {
+		    display: block;
+		}
+		.playGame {
+		    position: absolute;
+		    top: 320px;
+		    padding: 5px 10px;
+		    display: none;
+		}
+		.playGame.show {
+		    display: block;
+		}
+	</style>
+</head>
+<body>
+	<div class="game_msg"></div>
+	<button type="button" class="playGame"></button>
+	<canvas id="canvas"></canvas>
+	<div>
+		<button id="sound" value="0" onclick="turn(this)" style="border-radius:10px"><img src="../images/mute.png" width="50px" height="50px" id="img"></button>
+		<button onclick="location.href='../index.html'" style="border-radius:10px"><img src="../images/home.png" width="50px" height="50px"></button>
+	</div>
+	<script type="text/javascript">
+		let song = new Audio('../sounds/bgm.mp3');
+		let sound = document.getElementById("sound");
+		let img = document.getElementById("img");
+
+		function turn(sBtn) {
+			if (sBtn.value == 0){
+				song.play();
+				sBtn.value = 1;
+				img.src = "../images/volume.png";
+			}
+			else if (sBtn.value == 1) {
+				song.pause();
+				sBtn.value = 0;
+				img.src = "../images/mute.png";
+			}
+		}
+
+		song.addEventListener('ended', function() { 
+        	this.currentTime = 0;
+        	this.play();
+    	}, false);
+
+	</script>
+	<script type="text/javascript">
+		const gameMsg = document.querySelector('.game_msg');
+		const playGame = document.querySelector('.playGame');
+		const canvas = document.getElementById('canvas');
+		const ctx = canvas.getContext('2d');
+		const width = 720;
+		const height = 480;
+		const radius = 5;
+		let score = 0;
+		let lives = 3;
+		const SHOW = 'show';
+		
+		canvas.width = width;
+		canvas.height = height;
+		
+		let rightBtnPressed = false;
+		let leftBtnPressed = false;
+		
+		const ballRadius = 8;
+		
+		let x = canvas.width/2;
+		let y = canvas.height-50;
+		let dx = 2;
+		let dy = -2;
+		
+		const racketWidth = 80;
+		const racketHeight = 10;
+		let racketX = (canvas.width-racketWidth)/2;
+		let recketY = canvas.height-30;
+		
+		let bricks = [];
+		const brickRowCount = 3;
+		const brickColCount = 11;
+		const brickWidth = 50;
+		const brickHeight = 50;
+		const brickpadding = 11;
+		const brickOffsetTop = 30;
+		const brickOffsetLeft = 30;
+		const brickColors = ['#edc13a', '#e0c477', '#ad0404', '#8b6948', '#b9b99f', '#426a54', '#4f85f1'];
+		
+		
+		function collisionDetection() {
+		    for(let col = 0; col < brickColCount; col += 1) {
+		        for(let row = 0; row < brickRowCount; row += 1) {
+		            
+		            let block = bricks[col][row];
+		            if (bricks[col][row].status === 1) {
+		                
+		                if(x > block.x && x < block.x+brickWidth && y > block.y && y < block.y+brickHeight) {
+		                    dy = -dy;
+		                    block.status = 0;
+		                    score += 1;
+		                    
+		                    if (score === brickRowCount * brickColCount) {
+		                        gameMsg.innerHTML = `승리~`;
+		                        playGame.innerHTML = `게임 시작`;
+		                        playGame.classList.add(SHOW);
+		                        gameMsg.classList.add(SHOW);
+		                        clearInterval(drawInterval);
+		                    }
+		                }
+		            }                    
+		        }
+		    }
+		}
+		
+		function drawScore() {
+		    ctx.font = `16px Arial`;
+		    ctx.fillStyle = `black`;
+		    ctx.fillText(`점수: ${score}`, 8, 20);
+		}
+		
+		function drawLives() {
+		    ctx.font = "16px Arial";
+		    ctx.fillStyle = "black";
+		    ctx.fillText(`생명: ${lives}`, canvas.width-65, 20)
+		}
+		
+		for (let col = 0; col < brickColCount; col += 1 ) {
+		    bricks[col] = [];
+		    
+		    for (let row = 0; row < brickRowCount; row += 1) {
+		        bricks[col][row] = { x: 0, y: 0, status: 1, color: brickColors[Math.floor(Math.random() * brickColors.length) + 1]}
+		    }
+		}
+		
+		function drawBrick() {
+		    for (let col = 0; col < brickColCount; col += 1) {
+		        for (let row = 0; row < brickRowCount; row += 1) {
+		            
+		            if (bricks[col][row].status === 1) {
+		                let brickX = (col * (brickWidth + brickpadding)) + brickOffsetLeft;
+		                let brickY = (row * (brickHeight + brickpadding)) + brickOffsetTop;
+		                bricks[col][row].x = brickX;
+		                bricks[col][row].y = brickY;
+		                ctx.beginPath();
+		                roundedRect(ctx, brickX, brickY, brickWidth, brickHeight, radius);
+		                ctx.fillStyle = `${bricks[col][row].color}`;
+		                ctx.closePath();
+		                ctx.fill();
+		            }
+		        }
+		    }
+		}
+		
+		function drawRacket() {
+		    ctx.beginPath();
+		    
+		    roundedRect(ctx, racketX, recketY, racketWidth, racketHeight, radius);
+		    ctx.fillStyle = `#ffeb3b`;
+		    ctx.closePath();
+		    ctx.fill();
+		}
+		
+		function drawBall() {
+		    ctx.fillStyle = `white`;
+		    ctx.fillRect(0, 0, width, height);
+		    
+		    ctx.beginPath();  
+		    ctx.arc(x, y, ballRadius, 0, Math.PI*2, false);
+		    
+		    ctx.fillStyle = `#0095DD`; 
+		    ctx.closePath(); 
+		    ctx.fill(); 
+		}
+		function draw() {
+		    ctx.clearRect(0, 0, width, height);
+		    drawBall();
+		    drawRacket();
+		    drawBrick();
+		    drawScore();
+		    drawLives();
+		    collisionDetection();
+
+		    if (x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+		        dx = -dx;
+		    }
+		    if (y + dy < ballRadius) {
+		        dy = -dy;
+		    } else if (y + dy > canvas.height-ballRadius-30) {
+		        if (x > racketX && x < racketX + racketWidth) {
+		            dy = -dy;
+		        } else {
+		            lives -= 1;
+		            if (!lives) {
+		                console.log(`GAME OVER`);
+		                gameMsg.innerHTML = `GAME OVER`;
+		                playGame.innerHTML = `다시 시작`;
+		                playGame.classList.add(SHOW);
+		                gameMsg.classList.add(SHOW);
+		                clearInterval(drawInterval);
+		            } else {
+		                x = canvas.width/2;
+		                y = canvas.height-50;
+		                dx = 2;
+		                dy = -2;
+		                racketX = (canvas.width - racketWidth) / 2;
+		            }
+		        }
+		    }
+
+		    if (rightBtnPressed && racketX < canvas.width-racketWidth) {
+		        racketX +=  5;
+		    } else if (leftBtnPressed && racketX > 0) {
+		        racketX -= 5;
+		    }
+		    x += dx;
+		    y += dy;
+		}
+		const drawInterval = setInterval(draw, 10);
+
+		function roundedRect(ctx, x, y, width, height, radius) {
+		    ctx.beginPath();
+		    ctx.moveTo(x, y + radius);
+		    ctx.lineTo(x, y + height - radius);
+		    ctx.arcTo(x, y + height, x + radius, y + height, radius);
+		    ctx.lineTo(x + width - radius, y + height);
+		    ctx.arcTo(x + width, y + height, x + width, y + height-radius, radius);
+		    ctx.lineTo(x + width, y + radius);
+		    ctx.arcTo(x + width, y, x + width - radius, y, radius);
+		    ctx.lineTo(x + radius, y);
+		    ctx.arcTo(x, y, x, y + radius, radius);
+		    ctx.stroke();
+		}
+
+		function keyupHandlr(event) {
+		    if (event.keyCode === 37) {
+		        leftBtnPressed = false;
+		    } else if (event.keyCode === 39) {
+		        rightBtnPressed = false;
+		    }
+		}
+
+		function keydownHandlr(event) {
+		    if (event.keyCode === 37) {
+		        leftBtnPressed = true;
+		    } else if (event.keyCode === 39) {
+		        rightBtnPressed = true;
+		    }
+		}
+
+		function gameStart() {
+		    document.location.reload();
+		}
+
+		function mouseMoveHandler(event) {
+		    
+		    const relativeX = event.clientX - canvas.offsetLeft;
+		    if(relativeX > 0 && relativeX < canvas.width) {
+		        racketX = relativeX - racketWidth/2;
+		    }
+		}
+
+		document.addEventListener('keyup', keyupHandlr, false);
+		document.addEventListener('keydown', keydownHandlr, false);
+
+		document.addEventListener("mousemove", mouseMoveHandler, false);
+
+		playGame.addEventListener('click', gameStart);
+	</script>
+</body>
+</html>
